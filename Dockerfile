@@ -1,15 +1,27 @@
 FROM golang:1.19-alpine
 
-ENV PKGS "curl git"
+ENV GOOS="linux"
+ENV CGO_ENABLED=0
+ENV PACKAGES="ca-certificates git curl bash zsh make"
 ENV ROOT /app
-ENV CGO_ENABLED 0
 
-RUN apk update && apk add --no-cache ${PKGS} \
-  && go install golang.org/x/tools/gopls@latest \
-  && go install github.com/cweill/gotests/gotests@latest \
-  && go install github.com/fatih/gomodifytags@latest
+RUN apk update \
+  && apk add --no-cache ${PACKAGES} \
+  && update-ca-certificates
 
 WORKDIR ${ROOT}
+
+RUN go install github.com/go-delve/delve/cmd/dlv@v1.7.3 && \
+  go install golang.org/x/tools/gopls@latest && \
+  go install github.com/cweill/gotests/gotests@latest && \
+  go install github.com/fatih/gomodifytags@latest && \
+  go install github.com/josharian/impl@latest && \
+  go install honnef.co/go/tools/cmd/staticcheck@latest && \
+  go install golang.org/x/tools/cmd/goimports@v0.1.10 && \
+  go install github.com/alvaroloes/enumer@latest && \
+  go install github.com/haya14busa/goplay/cmd/goplay@latest
+
+
 
 COPY ./ ./
 

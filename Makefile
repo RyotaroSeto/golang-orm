@@ -1,7 +1,7 @@
-DB_URL=postgresql://postgres:postgres@localhost:5432/db?sslmode=disable
+DB_URL=postgresql://postgres:postgres@localhost:5432/test_db?sslmode=disable
 
 createdb:
-	docker exec -it postgres createdb --username=postgres --owner=postgres db
+	docker exec -it postgres createdb --username=postgres --owner=postgres test_db
 
 #migration#########################################################################################################
 #golang-migrate-----------------------------------------------------------------------------------------#

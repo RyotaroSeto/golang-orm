@@ -1,16 +1,22 @@
 package api
 
 import (
-	"database/sql"
+	"golang-orm/util"
 	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
-func NewServer(db *sql.DB) {
+func NewServer(config util.Config) {
 	r := gin.Default()
 
-	r.GET("/sqlc/create", sqlcCreateUser)
+	r.GET("/sqlc/create", func(ctx *gin.Context) {
+		sqlcCreateUser(ctx, config)
+	})
+
+	r.GET("/sqlx/create", func(ctx *gin.Context) {
+		sqlxCreateUser(ctx, config)
+	})
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal(err)

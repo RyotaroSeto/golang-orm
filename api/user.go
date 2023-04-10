@@ -139,6 +139,7 @@ func newUserResponseEnt(user *ent.User) userResponse {
 // 機能が多い(学習コストが高い)
 // わかりやすい公式ドキュメントがあるhttps://entgo.io/ja/docs/getting-started
 // トランザクションはないため実装する必要がある
+// ここ最近急激にスターを伸ばしている
 // sqlc////////////////////////////////////////////
 func entCreateUser(ctx *gin.Context, config util.Config) {
 	var req createUserRequest

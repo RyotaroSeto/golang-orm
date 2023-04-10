@@ -54,6 +54,7 @@ func sqlcCreateUser(ctx *gin.Context, config util.Config) {
 	if err != nil {
 		log.Fatal("cannot connect to db", err)
 	}
+	defer conn.Close()
 
 	arg := db.CreateUserParams{
 		Username: req.Username,
@@ -102,6 +103,7 @@ func sqlxCreateUser(ctx *gin.Context, config util.Config) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+	defer dbx.Close()
 
 	sql := `INSERT INTO users (username, full_name, email) VALUES (:username, :full_name, :email);`
 	in := createUserRequestSqlx(req)

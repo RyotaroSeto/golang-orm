@@ -22,6 +22,10 @@ func NewServer(config util.Config) {
 		entCreateUser(ctx, config)
 	})
 
+	r.GET("/gorm/create", func(ctx *gin.Context) {
+		gormCreateUser(ctx, config)
+	})
+
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal(err)
 	}

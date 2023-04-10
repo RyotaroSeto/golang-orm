@@ -172,3 +172,14 @@ func entCreateUser(ctx *gin.Context, config util.Config) {
 	rsp := newUserResponseEnt(user)
 	ctx.JSON(http.StatusOK, rsp)
 }
+
+func gormCreateUser(ctx *gin.Context, config util.Config) {
+	var req createUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Fatal("invalid param", err)
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, req)
+}

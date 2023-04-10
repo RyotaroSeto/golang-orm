@@ -47,6 +47,7 @@ func errorResponse(err error) gin.H {
 func sqlcCreateUser(ctx *gin.Context, config util.Config) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Fatal("invalid param", err)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -54,6 +55,8 @@ func sqlcCreateUser(ctx *gin.Context, config util.Config) {
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 	defer conn.Close()
 
@@ -66,6 +69,7 @@ func sqlcCreateUser(ctx *gin.Context, config util.Config) {
 	store := db.NewStore(conn)
 	user, err := store.CreateUser(ctx, arg)
 	if err != nil {
+		log.Fatal(err)
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -94,6 +98,7 @@ func newUserResponseSqlx(user createUserRequestSqlx) userResponse {
 func sqlxCreateUser(ctx *gin.Context, config util.Config) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Fatal("invalid param", err)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -110,7 +115,12 @@ func sqlxCreateUser(ctx *gin.Context, config util.Config) {
 	in := createUserRequestSqlx(req)
 
 	tx := dbx.MustBegin()
-	tx.NamedExec(sql, in)
+	_, err = tx.NamedExec(sql, in)
+	if err != nil {
+		log.Fatal(err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 	tx.Commit()
 
 	rsp := newUserResponseSqlx(in)
@@ -133,6 +143,7 @@ func newUserResponseEnt(user *ent.User) userResponse {
 func entCreateUser(ctx *gin.Context, config util.Config) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Fatal("invalid param", err)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -140,6 +151,8 @@ func entCreateUser(ctx *gin.Context, config util.Config) {
 	conn, err := ent.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db", err)
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 	defer conn.Close()
 
@@ -150,6 +163,7 @@ func entCreateUser(ctx *gin.Context, config util.Config) {
 		SetEmail(req.Email).
 		Save(ctx)
 	if err != nil {
+		log.Fatal(err)
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}

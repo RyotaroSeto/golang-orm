@@ -18,6 +18,10 @@ func NewServer(config util.Config) {
 		sqlxCreateUser(ctx, config)
 	})
 
+	r.GET("/ent/create", func(ctx *gin.Context) {
+		entCreateUser(ctx, config)
+	})
+
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal(err)
 	}

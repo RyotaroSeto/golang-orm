@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"golang-orm/db/orm/ent"
 	db "golang-orm/db/orm/sqlc"
 	"golang-orm/util"
 
@@ -79,7 +80,7 @@ type createUserRequestSqlx struct {
 	Email    string `db:"email"`
 }
 
-func newUserResponseSqlx(user createUserRequest) userResponse {
+func newUserResponseSqlx(user createUserRequestSqlx) userResponse {
 	return userResponse(user)
 }
 
@@ -112,6 +113,47 @@ func sqlxCreateUser(ctx *gin.Context, config util.Config) {
 	tx.NamedExec(sql, in)
 	tx.Commit()
 
-	rsp := newUserResponseSqlx(req)
+	rsp := newUserResponseSqlx(in)
+	ctx.JSON(http.StatusOK, rsp)
+}
+
+func newUserResponseEnt(user *ent.User) userResponse {
+	return userResponse{
+		Username: user.Username,
+		FullName: user.FullName,
+		Email:    user.Email,
+	}
+}
+
+// sqlc////////////////////////////////////////////
+// 機能が多い(学習コストが高い)
+// わかりやすい公式ドキュメントがあるhttps://entgo.io/ja/docs/getting-started
+// トランザクションはないため実装する必要がある
+// sqlc////////////////////////////////////////////
+func entCreateUser(ctx *gin.Context, config util.Config) {
+	var req createUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	conn, err := ent.Open(config.DBDriver, config.DBSource)
+	if err != nil {
+		log.Fatal("cannot connect to db", err)
+	}
+	defer conn.Close()
+
+	user, err := conn.User.
+		Create().
+		SetUsername(req.Username).
+		SetFullName(req.FullName).
+		SetEmail(req.Email).
+		Save(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	rsp := newUserResponseEnt(user)
 	ctx.JSON(http.StatusOK, rsp)
 }
